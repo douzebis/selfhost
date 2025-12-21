@@ -1,0 +1,9 @@
+base_url = "https://douzebis.github.io/selfhost"
+title = "Hello World"
+description = "A minimal Zola site"
+
+compile_sass = false
+build_search_index = false
+
+[markdown]
+highlight_code = false
