@@ -1,47 +1,66 @@
+# Workflow name displayed in the GitHub Actions UI
 name: Deploy to GitHub Pages
 
+# Trigger conditions for this workflow
 on:
+  # Run automatically when code is pushed to the main branch
   push:
     branches:
       - main
+  # Allow manual triggering from the GitHub Actions UI
   workflow_dispatch:
 
+# Permissions required for this workflow to execute
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read      # Read access to repository contents
+  pages: write        # Write access to GitHub Pages deployment
+  id-token: write     # Write access to ID tokens (for secure deployment)
 
+# Concurrency control to prevent multiple deployments running simultaneously
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "pages"                # Group name for this workflow
+  cancel-in-progress: false     # Don't cancel in-progress deployments
 
+# Job definitions
 jobs:
+  # BUILD JOB: Compile the Zola static site
   build:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Check out the repository code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Step 2: Install Zola static site generator
       - name: Setup Zola
         uses: taiki-e/install-action@v2
         with:
-          tool: zola@0.19.2
+          tool: zola@0.19.2    # Specify Zola version
 
+      # Step 3: Build the static site
+      # This generates HTML/CSS/JS in the website/public directory
       - name: Build
         run: cd website && zola build
 
+      # Step 4: Upload the built site as a GitHub Pages artifact
+      # This packages the website/public directory for deployment
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./website/public
 
+  # DEPLOY JOB: Deploy the built artifact to GitHub Pages
   deploy:
+    # Configure the GitHub Pages environment
     environment:
       name: github-pages
+      # URL will be set to the deployed site's URL after deployment
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    # This job only runs after the build job completes successfully
     needs: build
     steps:
+      # Deploy the uploaded artifact to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
